@@ -24,12 +24,6 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email']  
 
-
-
-
-
-
-
 class ToppingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Topping
