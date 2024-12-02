@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const PizzaCustomizer = () => {
   const [toppings, setToppings] = useState([]);
+  const [cartItems, setCartItems] = useState([]); // Cart state to store selected toppings
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,23 +28,28 @@ const PizzaCustomizer = () => {
       .toFixed(2);
   };
 
-  const handleOrder = () => {
+  // Add the selected toppings to the cart
+  const handleAddToCart = () => {
     const selectedToppings = toppings
       .filter(topping => topping.selected)
-      .map(topping => ({ id: topping.id, name: topping.name, price: topping.price }));
-
-    const totalPrice = calculateTotal();
-
-    axios.post('http://127.0.0.1:8000/api/orders/', {
-      toppings: selectedToppings,
-      total_price: totalPrice,
-    })
+      .map(topping => ({
+        topping_id: topping.id, 
+        quantity: 1,
+      }));
+  
+    axios.post('http://127.0.0.1:8000/api/carts/%7Bcart_id%7D/add_to_cart/', selectedToppings)
       .then(response => {
-        navigate(`/payment/${response.data.id}`);
+        console.log('Added to cart', response.data);
+        // Update UI, like showing a cart preview
       })
       .catch(error => {
-        console.error('Error creating order:', error);
+        console.error('Error adding to cart:', error);
       });
+  };
+
+  // Navigate to the cart page or another page where the user can proceed to checkout
+  const handleGoToCart = () => {
+    navigate('/cart', { state: { cartItems } }); // Pass the cartItems to the cart page
   };
 
   return (
@@ -52,33 +58,33 @@ const PizzaCustomizer = () => {
         <h2 className="text-2xl text-center text-orange-600 mb-6">
           Customize Your Pizza
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {toppings.map((topping) => (
-            <div key={topping.id} className="topping-card">
-              <div className="flex items-center gap-2">
+            <div key={topping.id} className="topping-card p-2 border border-gray-200 rounded-lg shadow-sm">
+              <div className="flex flex-col items-center justify-center gap-2">
                 <input
                   type="checkbox"
                   id={`topping-${topping.id}`}
                   checked={topping.selected || false}
                   onChange={() => handleToppingChange(topping.id)}
-                  className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500"
+                  className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
                 />
                 <label
                   htmlFor={`topping-${topping.id}`}
-                  className="text-gray-700 font-medium cursor-pointer flex-grow"
+                  className="text-gray-700 text-sm font-medium cursor-pointer"
                 >
                   {topping.name}
                 </label>
-                <span className="text-gray-600">
+                <span className="text-gray-600 text-xs">
                   ${(parseFloat(topping.price) || 0).toFixed(2)}
                 </span>
-              </div>
-              <div className="mt-2 h-16 w-full bg-gray-100 rounded-lg flex items-center justify-center">
-                <img
-                  src={`http://127.0.0.1:8000${topping.image}`} 
-                  alt={topping.name}
-                  className="h-12 w-12 object-contain"
-                />
+                <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <img
+                    src={`http://127.0.0.1:8000${topping.image}`} 
+                    alt={topping.name}
+                    className="h-10 w-10 object-contain"
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -87,12 +93,20 @@ const PizzaCustomizer = () => {
           <div className="text-right text-xl font-semibold mb-4">
             Total Price: ${calculateTotal()}
           </div>
-          <button
-            className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-            onClick={handleOrder}
-          >
-            Proceed to Payment
-          </button>
+          <div className="flex gap-4">
+            <button
+              className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+              onClick={handleAddToCart}
+            >
+              Add to Cart
+            </button>
+            <button
+              className="flex-1 bg-blue-500 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              onClick={handleGoToCart}
+            >
+              Go to Cart
+            </button>
+          </div>
         </div>
       </div>
     </div>
