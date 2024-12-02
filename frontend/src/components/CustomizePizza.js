@@ -23,11 +23,10 @@ const PizzaCustomizer = () => {
   };
 
   const calculateTotal = () => {
-    const basePrice = 0.00;
-    const toppingsTotal = toppings
+    return toppings
       .filter(topping => topping.selected)
-      .reduce((sum, topping) => sum + parseFloat(topping.price || 0), 0);
-    return (basePrice + toppingsTotal).toFixed(2);
+      .reduce((sum, topping) => sum + parseFloat(topping.price || 0), 0)
+      .toFixed(2);
   };
 
   const handleAddToCart = () => {
@@ -57,7 +56,6 @@ const PizzaCustomizer = () => {
         <div className="main-card">
           <div className="header">
             <h2 className="title">Customize Your Perfect Pizza</h2>
-            <div className="base-price">Base Price: $50.00</div>
           </div>
 
           <div className="toppings-grid">

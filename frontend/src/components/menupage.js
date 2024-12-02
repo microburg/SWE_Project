@@ -29,7 +29,7 @@ const MenuPage = () => {
             {pizzaList.length === 0 ? (  
                 <div className="empty-message">No pizzas available at the moment.</div>  
             ) : (  
-                <div className="pizza-container"> {/* Adjusted div name */}  
+                <div className="pizza-container">
                     {pizzaList.map((pizza) => (  
                         <div className="pizza-cube" key={pizza.id}>  
                             <img className="pizza-image" src={pizza.image} alt={pizza.name} />  
