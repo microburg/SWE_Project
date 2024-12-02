@@ -1,0 +1,132 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header styles */
+.header {
+  background-color: #FF4500;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-menu {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+}
+
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.3s;
+}
+
+.nav-menu a:hover {
+  opacity: 0.8;
+}
+
+/* Main content */
+.customize-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.customize-title {
+  color: #FF4500;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Toppings list */
+.toppings-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.topping-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  transition: transform 0.2s;
+}
+
+.topping-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.topping-name {
+  font-weight: 500;
+}
+
+.topping-price {
+  color: #666;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #FF4500;
+  cursor: pointer;
+}
+
+/* Total price section */
+.total-price {
+  text-align: right;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 2rem 0;
+  padding-top: 1rem;
+  border-top: 2px solid #eee;
+}
+
+/* Order button */
+.order-button {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background-color: #FF4500;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.order-button:hover {
+  background-color: #FF5722;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .customize-container {
+      margin: 1rem;
+      padding: 1rem;
+  }
+  
+  .toppings-list {
+      grid-template-columns: 1fr;
+  }
+  
+  .customize-title {
+      font-size: 1.5rem;
+  }
+}
