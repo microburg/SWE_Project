@@ -1,106 +1,123 @@
-/* .login-wrapper {
+.login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  width: 100%;
+  min-height: 100vh;
   background-image: url('../images/pizzab.jpg');
-  background-size: cover; 
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-} */
+  padding: 20px;
+  position: relative;
+}
+
+.login-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for better readability */
+}
 
 .login-box {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ffc507; /* Yellow border */
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
   border-radius: 8px;
-  background-color: #ffffff; /* White background */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly darker shadow */
-  text-align: center;
-  font-family: Arial, sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  position: relative; /* To appear above the overlay */
+  backdrop-filter: blur(5px);
 }
 
-/* Header styling */
 .login-box h1 {
-  color: #000000; /* Black for header text */
-  font-size: 24px;
-  margin-bottom: 20px;
+  text-align: center;
+  color: #ff6b1a; /* Orange */
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
 }
 
-/* Error message styling */
-.error-message {
-  color: #e53935; /* Bright red for errors */
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-/* Input group styling */
 .input-group {
-  margin-bottom: 15px;
-  text-align: left;
+  margin-bottom: 1.2rem;
 }
 
 .input-group label {
   display: block;
-  margin-bottom: 5px;
-  color: #777; /* Gray for labels */
-  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .input-group input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd; /* Light gray border */
+  padding: 0.8rem;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  box-sizing: border-box;
-  outline: none;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
 }
 
 .input-group input:focus {
-  border-color: #ffa726; /* Orange for focus */
-  box-shadow: 0 0 4px rgba(255, 165, 38, 0.3); /* Soft orange glow */
+  outline: none;
+  border-color: #ff6b1a;
+  box-shadow: 0 0 0 2px rgba(255, 107, 26, 0.2);
 }
 
-/* Button styling */
 .login-btn,
-.signup-btn,
-.toggle-btn {
+.signup-btn {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #ffa726; /* Orange background */
-  color: #ffffff; /* White text */
+  padding: 0.8rem;
+  background-color: #ff6b1a;
+  color: white;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-bottom: 1rem;
+  font-weight: 500;
 }
 
 .login-btn:hover,
-.signup-btn:hover,
-.toggle-btn:hover {
-  background-color: #ffcc54; /* Lighter orange */
+.signup-btn:hover {
+  background-color: #e85d0f;
 }
 
-/* Toggle button styling */
 .toggle-btn {
-  margin-top: 20px;
-  font-size: 14px;
+  width: 100%;
+  padding: 0.8rem;
   background-color: transparent;
-  color: #2196f3; /* Blue for toggle text */
-  text-decoration: underline;
-  border: none;
+  color: #ff6b1a;
+  border: 1px solid #ff6b1a;
+  border-radius: 4px;
+  font-size: 0.9rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+  font-weight: 500;
 }
 
 .toggle-btn:hover {
-  color: #1565c0; /* Darker blue on hover */
+  background-color: rgba(255, 107, 26, 0.1);
 }
 
-/* Google login button container */
-.google-login-container {
-  margin-top: 20px;
+.error-message {
+  color: #ff3b30;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(255, 59, 48, 0.1);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Google Login Button Styles */
+div[class*='google-login'] {
+  width: 100% !important;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 }
