@@ -1,49 +1,70 @@
-.menu-container {
-    padding: 20px;
-    max-width: 100%; /* Ensure the container fits the viewport */
-    margin: auto;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box; /* Ensures padding and borders are included in width */
-}
+.menu-container {  
+    padding: 20px;  
+    max-width: 100%;   
+    margin: auto;  
+    background-color: #f8f9fa;  
+    border-radius: 8px;  
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+    box-sizing: border-box;   
+}  
 
-.pizza-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: flex-start;
-    gap: 20px;
-    padding-bottom: 20px;
-    overflow-x: auto;
-}
+.pizza-container {  
+    display: flex;  
+    flex-wrap: wrap;   
+    justify-content: flex-start;  
+    gap: 20px;  
+    padding-bottom: 20px;  
+    overflow-x: hidden; /* Changed to hidden to avoid horizontal scroll */  
+}  
 
-.pizza-cube {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    flex: 1 1 200px; /* Flexible sizing */
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    height: 350px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
+.pizza-cube {  
+    background-color: #fff;  
+    border-radius: 8px;  
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+    overflow: hidden;  
+    flex: 1 1 200px;   
+    display: flex;  
+    flex-direction: column;  
+    align-items: center;  
+    height: 350px; /* Set a fixed height for the square */  
+    transition: transform 0.2s, box-shadow 0.2s;  
+}  
 
-@media (max-width: 768px) {
-    .pizza-cube {
-        flex: 1 1 150px; /* Smaller size for smaller screens */
-        height: auto; /* Adjust height automatically */
-    }
-}
+.pizza-cube img {  
+    width: 100%; /* Make the image fit within the container */  
+    height: 50%; /* Limit the height for a good aspect ratio */  
+    object-fit: cover; /* Ensure image covers the area */  
+}  
 
-@media (max-width: 480px) {
-    .pizza-cube {
-        flex: 1 1 100%; /* Full width on very small screens */
-        height: auto;
-    }
+.pizza-cube h2, .pizza-cube p {  
+    margin: 10px 0;  
+    text-align: center; /* Center-align the text */  
+}  
 
-    .menu-container {
-        padding: 10px; /* Adjust padding for smaller screens */
-    }
+.price {  
+    font-weight: bold;  
+    color: #ff6f00; /* Optional: add color to price for emphasis */  
+}  
+
+.pizza-cube:hover {  
+    transform: scale(1.05); /* Slightly enlarge on hover */  
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Strengthen shadow on hover */  
+}  
+
+@media (max-width: 768px) {  
+    .pizza-cube {  
+        flex: 1 1 150px;   
+        height: auto;   
+    }  
+}  
+
+@media (max-width: 480px) {  
+    .pizza-cube {  
+        flex: 1 1 100%;   
+        height: auto;   
+    }  
+
+    .menu-container {  
+        padding: 10px;   
+    }  
 }

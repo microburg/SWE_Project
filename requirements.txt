@@ -6,3 +6,4 @@ google-auth-oauthlib    # For OAuth 2.0 support
 google-auth-httplib2    # For HTTP transport for Google Auth
 djangorestframework-simplejwt  # For JWT authentication
 psycopg2
+Pillow
