@@ -111,7 +111,7 @@ def google_auth(request):
 #     # معالجة الدفع (مثال بسيط: قبول الدفع)
 #     return Response({"success": True, "message": "Payment processed successfully!"})
 
-
+# Admin page create and update
 class PizzaViewSet(viewsets.ModelViewSet):
     queryset = Pizza.objects.all()
     serializer_class = PizzaSerializer
@@ -136,11 +136,12 @@ class PizzaViewSet(viewsets.ModelViewSet):
 
 from rest_framework.permissions import IsAuthenticated
 
+# Profile class
 class UserBasicInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user  # Automatically fetches the logged-in user
+        user = request.user  
         serializer = UserBasicInfoSerializer(user)
         return Response(serializer.data)
 
