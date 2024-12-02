@@ -1,4 +1,18 @@
-/* General styling for the login box */
+/* Login.css */
+
+/* Apply background only for the login page */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  background-image: url('../images/pizzab.jpg');
+  background-size: cover; /* Adjust size of the background image */
+  background-position: center; /* Center the background image */
+  background-repeat: no-repeat;
+}
+
 .login-box {
   max-width: 400px;
   margin: 50px auto;
