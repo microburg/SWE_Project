@@ -1,0 +1,18 @@
+/* Message Box */
+.message {
+    margin-top: 20px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+}
+
+/* Success Message */
+.success {
+    background-color: #28a745; 
+}
+
+/* Error Message */
+.error {
+    background-color: #dc3545; 
+}
