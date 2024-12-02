@@ -45,10 +45,7 @@ function Home() {
           </div>  
         </div>  
       </section>  
-
-      <footer>  
-        <p>&copy; 2024 APizza. All rights reserved.</p>  
-      </footer>  
+ 
     </div>  
   );  
 }  

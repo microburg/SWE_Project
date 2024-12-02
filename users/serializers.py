@@ -22,3 +22,14 @@ class UserBasicInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email']  
+
+
+
+
+from rest_framework import serializers
+from .models import Topping
+
+class ToppingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Topping
+        fields = ['id', 'name', 'price', 'image', 'is_available']
