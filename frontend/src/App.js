@@ -6,10 +6,10 @@ import AdminOrders from './components/AdminOrders';
 import Home from './components/Home';  
 import CustomizePizza from './components/CustomizePizza';  
 import Layout from './components/Layout';  
-import './components/App.css'; // Import custom CSS  
+import './components/App.css';   
 import AdminPage from './components/AdminPage';  
-import Login from './components/Login'; // Import the Login component  
-import ProfilePage from './components/ProfilePage'; // Import the ProfilePage component  
+import Login from './components/Login'; 
+import ProfilePage from './components/ProfilePage';
 import { GoogleOAuthProvider } from '@react-oauth/google'; 
 import PaymentCard from './components/Payment';
 

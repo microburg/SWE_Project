@@ -99,19 +99,19 @@ def google_auth(request):
         logging.error(f"Unexpected error: {e}")
         return Response({'success': False, 'error': 'Something went wrong'}, status=500)
 
-# @api_view(['POST'])
-# def process_payment(request):
-#     # بيانات الدفع الواردة من React
-#     card_number = request.data.get('card_number')
-#     expiry_date = request.data.get('expiry_date')
-#     cvv = request.data.get('cvv')
-#     phone_number = request.data.get('phone_number')
-#     amount = request.data.get('amount')
+@api_view(['POST'])
+def process_payment(request):
+    # بيانات الدفع الواردة من React
+    card_number = request.data.get('card_number')
+    expiry_date = request.data.get('expiry_date')
+    cvv = request.data.get('cvv')
+    phone_number = request.data.get('phone_number')
+    amount = request.data.get('amount')
 
-#     # معالجة الدفع (مثال بسيط: قبول الدفع)
-#     return Response({"success": True, "message": "Payment processed successfully!"})
+    # معالجة الدفع (مثال بسيط: قبول الدفع)
+    return Response({"success": True, "message": "Payment processed successfully!"})
 
-
+# Admin page create and update
 class PizzaViewSet(viewsets.ModelViewSet):
     queryset = Pizza.objects.all()
     serializer_class = PizzaSerializer
@@ -136,12 +136,23 @@ class PizzaViewSet(viewsets.ModelViewSet):
 
 from rest_framework.permissions import IsAuthenticated
 
+# Profile class
 class UserBasicInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user  # Automatically fetches the logged-in user
+        user = request.user  
         serializer = UserBasicInfoSerializer(user)
         return Response(serializer.data)
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Topping
+from .serializers import ToppingSerializer
+
+class ToppingListView(APIView):
+    def get(self, request):
+        toppings = Topping.objects.filter(is_available=True)
+        serializer = ToppingSerializer(toppings, many=True)
+        return Response(serializer.data)

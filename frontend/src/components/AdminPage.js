@@ -73,7 +73,7 @@ const AdminPage = () => {
             setMessage({ text: 'Pizza ID not found or error while updating!', type: 'error' });
         }
     
-        setUpdatePizzaID('');  // Clear the fields
+        setUpdatePizzaID('');
         setNewPizzaPrice('');
     };
 

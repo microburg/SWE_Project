@@ -7,7 +7,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem('access_token'); // Retrieve the token from local storage or wherever it's stored
+      const token = localStorage.getItem('access_token'); // Retrieve the token from local storage
 
       if (!token) {
         setError("No token found. Please log in.");

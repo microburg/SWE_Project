@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView
+from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, process_payment
+
+from .views import ToppingListView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -12,5 +14,10 @@ urlpatterns = [
 
     # User profile endpoint
     path('user/basic-info/', UserBasicInfoView.as_view(), name='user-basic-info'),
-    
+
+
+    path('pay/', process_payment, name='payment'),   
+
+    path('toppings/', ToppingListView.as_view(), name='topping-list'),
 ]
+

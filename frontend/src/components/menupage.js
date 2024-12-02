@@ -21,40 +21,33 @@ const MenuPage = () => {
     };
 
     return (
-        <div className="container">
-            <h1>Pizza Menu</h1>
+        <div className="menu-container">
+            <h1 className="menu-title">Pizza Menu</h1>
+            
+            {message && <div className={`message ${message.type}`}>{message.text}</div>}
 
             {pizzaList.length === 0 ? (
-                <p>No pizzas available at the moment.</p>
+                <div className="empty-message">No pizzas available at the moment.</div>
             ) : (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Price ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pizzaList.map((pizza) => (
-                            <tr key={pizza.id}>
-                                <td>{pizza.id}</td>
-                                <td>{pizza.name}</td>
-                                <td>{pizza.description}</td>
-                                <td>
-                                    {/* Handle price display: if it's invalid, show 'Invalid price' */}
-                                    {typeof pizza.price === 'number' && !isNaN(pizza.price)
+                <div className="pizza-grid">
+                    {pizzaList.map((pizza) => (
+                        <div className="pizza-cube" key={pizza.id}>
+                            <div className="pizza-image">
+                                <img src={pizza.image} alt={pizza.name} />
+                            </div>
+                            <div className="pizza-details">
+                                <h2 className="pizza-name">{pizza.name}</h2>
+                                <p className="pizza-description">{pizza.description}</p>
+                                <p className="pizza-price">
+                                    ${typeof pizza.price === 'number' && !isNaN(pizza.price)
                                         ? pizza.price.toFixed(2)
                                         : 'Invalid price'}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
-
-            {message && <div className={`message ${message.type}`}>{message.text}</div>}
         </div>
     );
 };

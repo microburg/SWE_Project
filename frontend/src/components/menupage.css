@@ -1,71 +1,49 @@
 .menu-container {
-    max-width: 900px;
-    margin: 50px auto;
     padding: 20px;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    font-family: 'Roboto', sans-serif;
-}
-
-h1 {
-    text-align: center;
-    color: #FF7F32;
-    margin-bottom: 20px;
-}
-
-.menu-items {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.menu-item {
-    padding: 20px;
-    border: 1px solid #ddd;
+    max-width: 100%; /* Ensure the container fits the viewport */
+    margin: auto;
+    background-color: #f8f9fa;
     border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Ensures padding and borders are included in width */
+}
+
+.pizza-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: flex-start;
+    gap: 20px;
+    padding-bottom: 20px;
+    overflow-x: auto;
+}
+
+.pizza-cube {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex: 1 1 200px; /* Flexible sizing */
+    display: flex;
+    flex-direction: column;
     text-align: center;
-    background-color: #f9f9f9;
+    height: 350px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.menu-item h3 {
-    color: #FF7F32;
-    margin-bottom: 10px;
+@media (max-width: 768px) {
+    .pizza-cube {
+        flex: 1 1 150px; /* Smaller size for smaller screens */
+        height: auto; /* Adjust height automatically */
+    }
 }
 
-.menu-item p {
-    margin: 5px 0;
-    color: #555;
-}
+@media (max-width: 480px) {
+    .pizza-cube {
+        flex: 1 1 100%; /* Full width on very small screens */
+        height: auto;
+    }
 
-.menu-item button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    background-color: #FF7F32;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.menu-item button:hover {
-    background-color: #FF5C00;
-}
-
-/* Cart Styling */
-.cart-container {
-    margin-top: 30px;
-    padding: 20px;
-    border-top: 2px solid #FF7F32;
-}
-
-.cart-container ul {
-    list-style: none;
-    padding: 0;
-}
-
-.cart-container li {
-    margin: 10px 0;
-    color: #333;
+    .menu-container {
+        padding: 10px; /* Adjust padding for smaller screens */
+    }
 }
