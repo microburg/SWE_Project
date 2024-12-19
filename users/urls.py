@@ -1,15 +1,5 @@
 from django.urls import path, include
-from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, process_payment
-
-from .views import ToppingListView
-from rest_framework.routers import DefaultRouter
-from .views import CartViewSet
-
-
-
-router = DefaultRouter() 
-router.register(r'carts', CartViewSet)
-
+from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, process_payment,  ToppingListView , CartViewSet
 
 
 urlpatterns = [
@@ -29,6 +19,9 @@ urlpatterns = [
 
     path('toppings/', ToppingListView.as_view(), name='topping-list'),
 
-    path('', include(router.urls)),
+    path('carts/add_to_cart/', CartViewSet.as_view({'post': 'add_to_cart'}), name='cart-add-to-cart'),
+    path('carts/remove_from_cart/', CartViewSet.as_view({'post': 'remove_from_cart'}), name='cart-remove-from-cart'),
+    path('carts/get_cart_items/', CartViewSet.as_view({'get': 'get_cart_items'}), name='cart-items'),
+    path('carts/get_total_price/', CartViewSet.as_view({'get': 'get_total_price'}), name='cart-total-price'),
 
 ]

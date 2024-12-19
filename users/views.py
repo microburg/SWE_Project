@@ -167,62 +167,89 @@ class ToppingListView(APIView):
 
 
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
+import logging
+from .models import Cart, CartItem, Topping, Pizza
+from .serializers import CartSerializer, CartItemSerializer
+
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
     queryset = Cart.objects.all()
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
-    
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
-        # Return the cart for the authenticated user
         return Cart.objects.filter(user=self.request.user)
 
-    @action(detail=True, methods=['post'])
-    def add_to_cart(self, request, pk=None):
-        cart = self.get_object()  # Get the user's cart
+    @action(detail=False, methods=['post'])
+    def add_to_cart(self, request):
+        if not request.user.is_authenticated:
+            logging.error(f"User not authenticated: {request.user}")
+            return Response({"detail": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Validate input
         topping_id = request.data.get('topping_id')
-        quantity = request.data.get('quantity', 1)
-        
-        try:
-            topping = Topping.objects.get(id=topping_id)
-        except Topping.DoesNotExist:
-            return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart, topping=topping,
-            defaults={'quantity': quantity}
-        )
-        
+        pizza_id = request.data.get('pizza_id')
+        quantity = int(request.data.get('quantity', 1))
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        if topping_id:
+            try:
+                topping = Topping.objects.get(id=topping_id)
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart, topping=topping,
+                    defaults={'quantity': quantity}
+                )
+            except Topping.DoesNotExist:
+                return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
+        elif pizza_id:
+            try:
+                pizza = Pizza.objects.get(id=pizza_id)
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart, pizza=pizza,
+                    defaults={'quantity': quantity}
+                )
+            except Pizza.DoesNotExist:
+                return Response({"detail": "Pizza not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"detail": "Invalid item type"}, status=status.HTTP_400_BAD_REQUEST)
+
         if not created:
-            cart_item.quantity += quantity  # Update quantity if the item already exists
+            # Update quantity if the item already exists
+            cart_item.quantity += quantity
             cart_item.save()
-        
+
         return Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=True, methods=['post'])
-    def remove_from_cart(self, request, pk=None):
-        cart = self.get_object()
+
+    @action(detail=False, methods=['post'])
+    def remove_from_cart(self, request):
+        # Get the user's cart
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         topping_id = request.data.get('topping_id')
-        
+
         try:
             topping = Topping.objects.get(id=topping_id)
-        except Topping.DoesNotExist:
-            return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        try:
             cart_item = CartItem.objects.get(cart=cart, topping=topping)
             cart_item.delete()
             return Response({"detail": "Item removed from cart"}, status=status.HTTP_200_OK)
+        except Topping.DoesNotExist:
+            return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
         except CartItem.DoesNotExist:
             return Response({"detail": "Item not in cart"}, status=status.HTTP_404_NOT_FOUND)
-    
-    @action(detail=True, methods=['get'])
-    def get_cart_items(self, request, pk=None):
-        cart = self.get_object()
+
+    @action(detail=False, methods=['get'])
+    def get_cart_items(self, request):
+        # Get the user's cart and items
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         items = CartItem.objects.filter(cart=cart)
         return Response(CartItemSerializer(items, many=True).data)
-    
-    @action(detail=True, methods=['get'])
-    def get_total_price(self, request, pk=None):
-        cart = self.get_object()
+
+    @action(detail=False, methods=['get'])
+    def get_total_price(self, request):
+        # Calculate the total price of items in the cart
+        cart, _ = Cart.objects.get_or_create(user=request.user)
         total = sum([item.total_price() for item in CartItem.objects.filter(cart=cart)])
         return Response({"total_price": str(total)}, status=status.HTTP_200_OK)

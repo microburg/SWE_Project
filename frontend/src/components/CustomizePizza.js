@@ -5,18 +5,26 @@ import './CustomizePizza.css';
 
 const PizzaCustomizer = () => {
   const [toppings, setToppings] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/toppings/')
       .then(response => setToppings(response.data))
-      .catch(error => console.error('Error fetching toppings:', error));
-  }, []);
+      .catch(error => {
+        // If fetching toppings fails, handle it
+        if (error.response && error.response.status === 401) {
+          alert('You need to log in to customize your pizza.');
+          navigate('/login');  
+        } else {
+          console.error('Error fetching toppings:', error);
+          alert('Failed to load toppings. Please try again later.');
+        }
+      });
+  }, [navigate]);
 
   const handleToppingChange = (toppingId) => {
-    setToppings(toppings.map(topping => 
-      topping.id === toppingId 
+    setToppings(toppings.map(topping =>
+      topping.id === toppingId
         ? { ...topping, selected: !topping.selected }
         : topping
     ));
@@ -29,25 +37,53 @@ const PizzaCustomizer = () => {
       .toFixed(2);
   };
 
-  const handleAddToCart = () => {
-    const selectedToppings = toppings
-      .filter(topping => topping.selected)
-      .map(topping => ({
-        topping_id: topping.id, 
-        quantity: 1,
-      }));
-  
-    axios.post('http://127.0.0.1:8000/api/carts/%7Bcart_id%7D/add_to_cart/', selectedToppings)
-      .then(response => {
-        console.log('Added to cart', response.data);
-      })
-      .catch(error => {
-        console.error('Error adding to cart:', error);
-      });
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem('access_token');
+    const selectedToppings = toppings.filter(topping => topping.selected);
+
+    if (!token) {
+      alert('You need to log in to add items to your cart.');
+      navigate('/login');
+      return;
+    }
+
+    if (selectedToppings.length === 0) {
+      alert('Please select at least one topping.');
+      return;
+    }
+
+    try {
+      for (const topping of selectedToppings) {
+        await axios.post(
+          `http://127.0.0.1:8000/api/carts/add_to_cart/`,
+          { topping_id: topping.id, quantity: 1 },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+            },
+          }
+        );
+      }
+      console.log('All toppings added to cart successfully');
+      alert('Items added to cart successfully!');
+    } catch (error) {
+      console.error('Error adding toppings to cart:', error.response ? error.response : error.message);
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          alert('You need to log in first.');
+          navigate('/login');
+        } else {
+          alert('Failed to add items to cart. Please try again.');
+        }
+      } else {
+        alert('Failed to add items to cart. Please check your network or try again later.');
+      }
+    }
   };
 
   const handleGoToCart = () => {
-    navigate('/cart', { state: { cartItems } });
+    navigate('/cart');
   };
 
   return (
@@ -60,8 +96,8 @@ const PizzaCustomizer = () => {
 
           <div className="toppings-grid">
             {toppings.map((topping) => (
-              <div 
-                key={topping.id} 
+              <div
+                key={topping.id}
                 className={`topping-card ${topping.selected ? 'selected' : ''}`}
               >
                 <div className="topping-content">
