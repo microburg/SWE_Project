@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from "react";
 import './ProfilePage.css';
+import profileImage from '../images/download.png';
 
 const ProfilePage = () => {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState({
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    email: '',
+    phoneNumber: '',
+    profileImage: profileImage
+  });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [error, setError] = useState(null);
+
+  const validatePhoneNumber = (phone) => {
+    const phoneRegex = /^\+20[0-9]{10}$/;
+    if (!phone) return "Phone number is required";
+    if (!phone.startsWith('+20')) return "Phone number must start with +20";
+    if (!phoneRegex.test(phone)) return "Please enter a valid Egyptian phone number";
+    return "";
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem('access_token'); // Retrieve the token from local storage
-
+      const token = localStorage.getItem('access_token');
       if (!token) {
         setError("No token found. Please log in.");
         return;
@@ -26,7 +43,11 @@ const ProfilePage = () => {
         }
 
         const data = await response.json();
-        setUserData(data);
+        setUserData(prev => ({
+          ...prev,
+          displayName: data.username,
+          email: data.email
+        }));
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError("Error fetching user data. Please try again.");
@@ -36,70 +57,157 @@ const ProfilePage = () => {
     fetchUserData();
   }, []);
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setUserData(prev => ({
+      ...prev,
+      [id]: value
+    }));
 
-  if (!userData) {
-    return <div>Loading...</div>;
-  }
+    if (id === 'phoneNumber') {
+      const phoneError = validatePhoneNumber(value);
+      setErrors(prev => ({
+        ...prev,
+        phoneNumber: phoneError
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { id } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [id]: true
+    }));
+
+    if (id === 'phoneNumber') {
+      const phoneError = validatePhoneNumber(userData.phoneNumber);
+      setErrors(prev => ({
+        ...prev,
+        phoneNumber: phoneError
+      }));
+    }
+  };
+
+// ----------------------------------------------------
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('first_name', userData.firstName);
+    formData.append('last_name', userData.lastName);
+    formData.append('phone_number', userData.phoneNumber);
+    if (userData.profileImageFile) {
+        formData.append('profile_image', userData.profileImageFile);
+    }
+
+    const token = localStorage.getItem('access_token');
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/user/update-profile/', {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            console.log('Profile updated successfully');
+        } else {
+            const errorData = await response.json();
+            console.error('Error:', errorData);
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+    }
+};
+
+//--------------------------------------------------------
+
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    // <div className="container">
-    //   <h1>Profile Information</h1>
-    //   <div className="form-container">
-    //     <h2>Personal Details</h2>
-    //     <label>Name:</label>
-    //     <input type="text" value={userData.username} readOnly />
+    <div className="container">
+      <div className="profile-picture-container">
+        <div className="profile-picture">
+          <img src={profileImage} alt="Profile" />
+        </div>
+      </div>
 
-    //     <label>Email:</label>
-    //     <input type="email" value={userData.email} readOnly />
-    //   </div>
-    // </div>
-    
-
-
-      <div class="account-overview">  
-        <h2>Account Overview</h2>  
-
+      <form onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="first-name">First Name *</label>
-            <input type="text" id="first-name" placeholder="Enter your first name" />
+            <label htmlFor="firstName">First Name</label>
+            <input
+              type="text"
+              id="firstName"
+              value={userData.firstName}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="form-group">
-            <label htmlFor="last-name">Last Name *</label>
-            <input type="text" id="last-name" placeholder="Enter your last name" />
+            <label htmlFor="lastName">Last Name</label>
+            <input
+              type="text"
+              id="lastName"
+              value={userData.lastName}
+              onChange={handleChange}
+              required
+            />
           </div>
         </div>
 
+        <div className="form-group">
+          <label htmlFor="displayName">Display name *</label>
+          <input
+            type="text"
+            id="displayName"
+            value={userData.displayName}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        <div class="form-group">  
-            <label>Username</label>  
-            <input type="text" value={userData.username} readOnly placeholder="Username" />  
-        </div>  
+        <div className="form-group">
+          <label htmlFor="email">Email address *</label>
+          <input
+            type="email"
+            id="email"
+            value={userData.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        <div class="form-group">  
-            <label>Email:</label>  
-            <input type="email" value={userData.email} readOnly placeholder="Email address" />  
-        </div>  
+        <div className="form-group">
+          <label htmlFor="phoneNumber">Phone number *</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            value={userData.phoneNumber}
+            onChange={(e) => {
+              // Allow only numbers and the plus sign
+              const value = e.target.value;
+              if (/^[\d+]*$/.test(value)) { 
+                handleChange(e);
+              }
+            }}
+            onBlur={handleBlur}
+            placeholder="+20"
+            className={touched.phoneNumber && errors.phoneNumber ? 'error' : ''}
+            required
+          />
+          {touched.phoneNumber && errors.phoneNumber && (
+            <div className="error-message">{errors.phoneNumber}</div>
+          )}
+        </div>
 
-        <div class="form-group">  
-            <label for="current-password">Current Password (leave blank to leave unchanged)</label>  
-            <input type="password" id="current-password" placeholder="Current password" />  
-        </div>  
 
-        <div class="form-group">  
-            <label for="new-password">New Password (leave blank to leave unchanged)</label>  
-            <input type="password" id="new-password" placeholder="New password" />  
-        </div>  
-
-        <div class="form-group">  
-            <label for="confirm-password">Confirm New Password</label>  
-            <input type="password" id="confirm-password" placeholder="Confirm new password" />  
-        </div>  
-
-        <button type="submit" class="btn-save">Save Changes</button>  
+        <button type="submit">Save changes</button>
+      </form>
     </div>
   );
 };
