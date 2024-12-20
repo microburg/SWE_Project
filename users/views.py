@@ -28,6 +28,8 @@ from rest_framework.decorators import action
 from .models import Cart, CartItem, Topping
 from .serializers import CartSerializer, CartItemSerializer, ToppingSerializer
 
+from .models import Payment
+
 
 
 class LoginView(APIView):
@@ -106,17 +108,53 @@ def google_auth(request):
         logging.error(f"Unexpected error: {e}")
         return Response({'success': False, 'error': 'Something went wrong'}, status=500)
 
-@api_view(['POST'])
-def process_payment(request):
-    # بيانات الدفع الواردة من React
-    card_number = request.data.get('card_number')
-    expiry_date = request.data.get('expiry_date')
-    cvv = request.data.get('cvv')
-    phone_number = request.data.get('phone_number')
-    amount = request.data.get('amount')
 
-    # معالجة الدفع (مثال بسيط: قبول الدفع)
-    return Response({"success": True, "message": "Payment processed successfully!"})
+class PaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+
+        service_type = data.get('service_type')  # Dine In, Delivery, or Pick Up
+        payment_method = data.get('payment_method')  # Cash or Visa
+        amount = data.get('amount')
+        card_number = data.get('card_number')
+        expiry_date = data.get('expiry_date')
+        cvv = data.get('cvv')
+
+        # Basic validations
+        if not service_type or not payment_method or not amount:
+            return Response({"success": False, "message": "All fields are required"}, status=400)
+
+        # Create payment object
+        payment = Payment(
+            amount=amount,
+            service_type=service_type,
+            payment_method=payment_method
+        )
+
+        if payment_method == "Visa":
+            # Validate card details
+            if not card_number or not expiry_date or not cvv:
+                return Response({"success": False, "message": "Card details are required for Visa payment"}, status=400)
+
+            # Example Visa validation logic (can be replaced with real validation)
+            if len(card_number) == 16 and len(cvv) == 3:
+                payment.card_number = card_number
+                payment.expiry_date = expiry_date
+                payment.cvv = cvv
+                payment.payment_status = "Successful"
+            else:
+                return Response({"success": False, "message": "Invalid card details"}, status=400)
+
+        elif payment_method == "Cash":
+            payment.payment_status = "Pending"
+
+        # Save payment
+        payment.save()
+
+        return Response({"success": True, "payment_status": payment.payment_status}, status=201)
+
 
 # Admin page create and update
 class PizzaViewSet(viewsets.ModelViewSet):

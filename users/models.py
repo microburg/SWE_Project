@@ -2,15 +2,29 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Payment(models.Model):
+    SERVICE_CHOICES = [
+        ('Dine In', 'Dine In'),
+        ('Delivery', 'Delivery'),
+        ('Pick Up', 'Pick Up'),
+    ]
+
+    PAYMENT_METHOD_CHOICES = [
+        ('Cash', 'Cash'),
+        ('Visa', 'Visa'),
+    ]
+
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    card_number = models.CharField(max_length=16)
-    expiry_date = models.CharField(max_length=5)  # مثلاً MM/YY
-    cvv = models.CharField(max_length=3)
-    is_successful = models.BooleanField(default=False)
+    service_type = models.CharField(max_length=20, choices=SERVICE_CHOICES)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
+    payment_status = models.CharField(max_length=10, default="Pending")  # Pending, Successful
+    card_number = models.CharField(max_length=16, blank=True, null=True)
+    expiry_date = models.CharField(max_length=5, blank=True, null=True)  # Format MM/YY
+    cvv = models.CharField(max_length=3, blank=True, null=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
+    order_status = models.CharField(max_length=20, default="Pending")
 
     def __str__(self):
-        return f"Payment of {self.amount} - {'Success' if self.is_successful else 'Failed'}"
+        return f"{self.service_type} - {self.amount} - {self.payment_status}"
 
 class Pizza(models.Model):  
     id = models.CharField(max_length=10, primary_key=True) 

@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, process_payment,  ToppingListView , CartViewSet
+from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, PaymentView, ToppingListView, CartViewSet
 
 
 urlpatterns = [
@@ -15,7 +15,7 @@ urlpatterns = [
     path('user/basic-info/', UserBasicInfoView.as_view(), name='user-basic-info'),
 
 
-    path('pay/', process_payment, name='payment'),   
+     path('payments/process_payment/', PaymentView.as_view(), name='process_payment'),
 
     path('toppings/', ToppingListView.as_view(), name='topping-list'),
 
@@ -23,5 +23,7 @@ urlpatterns = [
     path('carts/remove_from_cart/', CartViewSet.as_view({'post': 'remove_from_cart'}), name='cart-remove-from-cart'),
     path('carts/get_cart_items/', CartViewSet.as_view({'get': 'get_cart_items'}), name='cart-items'),
     path('carts/get_total_price/', CartViewSet.as_view({'get': 'get_total_price'}), name='cart-total-price'),
+   
+
 
 ]
