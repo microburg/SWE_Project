@@ -156,30 +156,36 @@ class PaymentView(APIView):
         return Response({"success": True, "payment_status": payment.payment_status}, status=201)
 
 
-# Admin page create and update
-class PizzaViewSet(viewsets.ModelViewSet):
-    queryset = Pizza.objects.all()
-    serializer_class = PizzaSerializer
+from rest_framework import status  
+from rest_framework.response import Response  
+from rest_framework import viewsets  
+from .models import Pizza  
+from .serializers import PizzaSerializer  
+from rest_framework.permissions import IsAuthenticated  
+from django.urls import reverse  
 
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  # Create pizza 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PizzaViewSet(viewsets.ModelViewSet):  
+    queryset = Pizza.objects.all()  
+    serializer_class = PizzaSerializer  
+    permission_classes = [AllowAny]  # Ensure proper permissions  
+
+    def create(self, request):  
+        serializer = self.get_serializer(data=request.data)  
+        if serializer.is_valid():  
+            pizza = serializer.save()  # Create pizza   
+            # Generate URL for the created pizza  
+            pizza_url = reverse('admin:users_pizza_change', args=[pizza.id])  
+            return Response({'url': pizza_url, 'pizza': serializer.data}, status=status.HTTP_201_CREATED)  
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
     
-    def update(self, request, *args, **kwargs):
-        
-        instance = self.get_object() 
-        serializer = self.get_serializer(instance, data=request.data, partial=True) 
+    def update(self, request, *args, **kwargs):  
+        instance = self.get_object()  
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  
 
-        if serializer.is_valid():
-           
-            serializer.save() 
+        if serializer.is_valid():  
+            serializer.save()  
             return Response(serializer.data)  
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from rest_framework.permissions import IsAuthenticated
 
 # Profile class
 class UserBasicInfoView(APIView):
@@ -264,26 +270,55 @@ class CartViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def remove_from_cart(self, request):
-        # Get the user's cart
         cart, _ = Cart.objects.get_or_create(user=request.user)
         topping_id = request.data.get('topping_id')
+        pizza_id = request.data.get('pizza_id')
 
         try:
-            topping = Topping.objects.get(id=topping_id)
-            cart_item = CartItem.objects.get(cart=cart, topping=topping)
+            if topping_id:
+                # Remove topping from cart
+                topping = Topping.objects.get(id=topping_id)
+                cart_item = CartItem.objects.get(cart=cart, topping=topping)
+            elif pizza_id:
+                # Remove pizza from cart
+                pizza = Pizza.objects.get(id=pizza_id)
+                cart_item = CartItem.objects.get(cart=cart, pizza=pizza)
+            else:
+                return Response({"detail": "Invalid item type"}, status=status.HTTP_400_BAD_REQUEST)
+
             cart_item.delete()
             return Response({"detail": "Item removed from cart"}, status=status.HTTP_200_OK)
-        except Topping.DoesNotExist:
-            return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except (Topping.DoesNotExist, Pizza.DoesNotExist):
+            return Response({"detail": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
         except CartItem.DoesNotExist:
             return Response({"detail": "Item not in cart"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'])
     def get_cart_items(self, request):
-        # Get the user's cart and items
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = CartItem.objects.filter(cart=cart)
-        return Response(CartItemSerializer(items, many=True).data)
+        try:
+            # Log the incoming request
+            logging.info(f"Fetching cart items for user: {request.user.username}")
+            
+            # Get or create the cart for the user
+            cart, created = Cart.objects.get_or_create(user=request.user)
+            logging.info(f"Cart retrieved: {cart.id}, Created: {created}")
+            
+            # Fetch cart items
+            items = CartItem.objects.filter(cart=cart)
+            if not items:
+                logging.info("Cart is empty")
+                return Response({"message": "Your cart is empty"}, status=status.HTTP_200_OK)
+
+            # Serialize cart items
+            serializer = CartItemSerializer(items, many=True)
+            logging.info(f"Serialized cart items: {serializer.data}")
+
+            return Response(serializer.data)
+        except Exception as e:
+            logging.error(f"Error in get_cart_items: {str(e)}")
+            return Response({"error": "Failed to load cart items"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     @action(detail=False, methods=['get'])
     def get_total_price(self, request):
@@ -291,3 +326,44 @@ class CartViewSet(viewsets.ModelViewSet):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = sum([item.total_price() for item in CartItem.objects.filter(cart=cart)])
         return Response({"total_price": str(total)}, status=status.HTTP_200_OK)
+
+
+
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UserProfile
+
+@api_view(['GET', 'PUT'])
+@parser_classes([MultiPartParser, FormParser])  # Allows file uploads
+def user_profile(request):
+    user = request.user
+
+    if request.method == 'GET':
+        try:
+            profile = user.profile
+            return Response({
+                'firstName': profile.first_name,
+                'lastName': profile.last_name,
+                'phoneNumber': profile.phone_number,
+                'profilePicture': profile.profile_picture.url if profile.profile_picture else None,
+                'username': user.username,
+                'email': user.email,
+            })
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'PUT':
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.first_name = request.data.get('firstName', profile.first_name)
+        profile.last_name = request.data.get('lastName', profile.last_name)
+        profile.phone_number = request.data.get('phoneNumber', profile.phone_number)
+
+        if 'profilePicture' in request.FILES:
+            profile.profile_picture = request.FILES['profilePicture']
+
+        profile.save()
+
+        return Response({'message': 'Profile updated successfully.'}, status=status.HTTP_200_OK)
+
