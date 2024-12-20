@@ -1,4 +1,4 @@
-Django==5.1.3
+Django
 djangorestframework     # For building RESTful APIs
 django-cors-headers     # To enable CORS (Cross-Origin Resource Sharing)
 google-auth             # For Google authentication
