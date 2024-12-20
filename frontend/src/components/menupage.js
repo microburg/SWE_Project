@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';  
 import axios from 'axios';  
-import './menupage.css';  
-import pepperoniImage from '../images/pepperoni.jpg';   
+import './menupage.css';
 
 const MenuPage = () => {  
     const [pizzaList, setPizzaList] = useState([]);  
@@ -30,18 +29,10 @@ const MenuPage = () => {
             {pizzaList.length === 0 ? (  
                 <div className="empty-message">No pizzas available at the moment.</div>  
             ) : (  
-                <div className="pizza-container">  
+                <div className="pizza-container">
                     {pizzaList.map((pizza) => (  
                         <div className="pizza-cube" key={pizza.id}>  
-                            <img   
-                                className="pizza-image"   
-                                src={pizza.image}   
-                                alt={pizza.name}   
-                                onError={(e) => {  
-                                    e.target.onerror = null; // Prevent loop  
-                                    e.target.src = pepperoniImage; // Fallback image  
-                                }}   
-                            />  
+                            <img className="pizza-image" src={pizza.image} alt={pizza.name} />  
                             <h2 className="pizza-name">{pizza.name}</h2>  
                             <p className="pizza-description">{pizza.description}</p>  
                             <p className="pizza-price">  

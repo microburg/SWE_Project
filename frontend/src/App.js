@@ -1,7 +1,7 @@
 import React, { useState } from 'react';  
 import { BrowserRouter as Router, Route, Routes, useLocation, Link } from 'react-router-dom';  
 import Menu from './components/menupage';  
-import UserOrders from './components/UserOrders';  
+import Cart from './components/Cart';  
 import AdminOrders from './components/AdminOrders';  
 import Home from './components/Home';  
 import CustomizePizza from './components/CustomizePizza';  
@@ -23,7 +23,7 @@ function App() {
         <ConditionalLayout>  
           <Routes>  
             <Route path="/" element={<Home />} />  
-            <Route path="/cart" element={<UserOrders accessToken={accessToken} />} />  
+            <Route path="/cart" element={< Cart />} />  
             <Route path="/admin-orders" element={<AdminOrders />} />  
             <Route path="/menu" element={<Menu />} />  
             <Route path="/customize" element={<CustomizePizza />} />  

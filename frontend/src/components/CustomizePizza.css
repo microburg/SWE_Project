@@ -1,131 +1,166 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.container {
+  min-height: 100vh;
+  background-color: rgb(249, 250, 251);
+  padding: 1.5rem 0;
 }
 
-/* Header styles */
-.header {
-  background-color: #FF4500;
-  padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.content-wrapper {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-.nav-menu {
-  display: flex;
-  justify-content: flex-end;
-  gap: 2rem;
-}
-
-.nav-menu a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.3s;
-}
-
-.nav-menu a:hover {
-  opacity: 0.8;
-}
-
-/* Main content */
-.customize-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
+.main-card {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.customize-title {
-  color: #FF4500;
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-/* Toppings list */
-.toppings-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.topping-item {
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background-color: #f8f8f8;
-  border-radius: 6px;
-  transition: transform 0.2s;
+  margin-bottom: 1.5rem;
 }
 
-.topping-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(31, 41, 55);
 }
 
-.topping-name {
+.base-price {
+  color: rgb(234, 88, 12);
   font-weight: 500;
 }
 
-.topping-price {
-  color: #666;
+.toppings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
-/* Checkbox styling */
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #FF4500;
-  cursor: pointer;
+.topping-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229, 231, 235);
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-/* Total price section */
-.total-price {
-  text-align: right;
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin: 2rem 0;
-  padding-top: 1rem;
-  border-top: 2px solid #eee;
+.topping-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Order button */
-.order-button {
-  display: block;
+.topping-card.selected {
+  border-color: rgb(234, 88, 12);
+}
+
+.topping-content {
+  padding: 0.75rem;
+}
+
+.topping-image-container {
+  height: 3rem;
+  width: 3rem;
+  margin: 0 auto 0.5rem;
+}
+
+.topping-image {
+  height: 100%;
   width: 100%;
-  padding: 1rem;
-  background-color: #FF4500;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  object-fit: contain;
+}
+
+.topping-info {
+  text-align: center;
+}
+
+.topping-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(31, 41, 55);
+  margin-bottom: 0.25rem;
+}
+
+.topping-price {
+  font-size: 0.75rem;
+  color: rgb(234, 88, 12);
+}
+
+.topping-checkbox {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.order-button:hover {
-  background-color: #FF5722;
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(243, 244, 246);
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .customize-container {
-      margin: 1rem;
-      padding: 1rem;
+.total-amount {
+  font-weight: 500;
+}
+
+.total-price {
+  font-size: 1.25rem;
+  color: rgb(234, 88, 12);
+  font-weight: 700;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.button {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.button-primary {
+  background-color: rgb(234, 88, 12);
+  color: white;
+}
+
+.button-primary:hover {
+  background-color: rgb(194, 65, 12);
+}
+
+.button-secondary {
+  background-color: rgb(31, 41, 55);
+  color: white;
+}
+
+.button-secondary:hover {
+  background-color: rgb(17, 24, 39);
+}
+
+/* Responsive Grid */
+@media (min-width: 640px) {
+  .toppings-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .toppings-list {
-      grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .toppings-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
-  
-  .customize-title {
-      font-size: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .toppings-grid {
+    grid-template-columns: repeat(6, 1fr);
   }
 }
