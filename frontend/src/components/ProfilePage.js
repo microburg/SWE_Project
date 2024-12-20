@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./ProfilePage.css";
-import profileImage from "../images/download.png";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState({
@@ -9,15 +8,17 @@ const ProfilePage = () => {
     displayName: "",
     email: "",
     phoneNumber: "",
-    profileImage: profileImage,
+    profileImage: "",
   });
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Validation for all fields
+  const fileInputRef = useRef(null);
+
   const validateField = (id, value) => {
     switch (id) {
       case "phoneNumber":
@@ -36,7 +37,6 @@ const ProfilePage = () => {
     return "";
   };
 
-  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("access_token");
@@ -46,6 +46,7 @@ const ProfilePage = () => {
       }
 
       try {
+        setIsLoading(true);
         const response = await fetch("http://127.0.0.1:8000/api/user/profile/", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -57,6 +58,16 @@ const ProfilePage = () => {
         }
 
         const data = await response.json();
+
+        // Handle the profile picture URL
+        let profileImageUrl = "";
+        if (data.profilePicture) {
+          // If the backend returns a relative URL, prepend the base URL
+          profileImageUrl = data.profilePicture.startsWith('http') 
+            ? data.profilePicture 
+            : `http://127.0.0.1:8000${data.profilePicture}`;
+        }
+
         setUserData((prev) => ({
           ...prev,
           displayName: data.username,
@@ -64,61 +75,63 @@ const ProfilePage = () => {
           firstName: data.firstName || "",
           lastName: data.lastName || "",
           phoneNumber: data.phoneNumber || "",
+          profileImage: profileImageUrl, // Only set the profile image if available
         }));
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError("Error fetching user data. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserData();
   }, []);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { id, value } = e.target;
     setUserData((prev) => ({ ...prev, [id]: value }));
-
-    // Validate the field dynamically
-    setErrors((prev) => ({
-      ...prev,
-      [id]: validateField(id, value),
-    }));
+    setErrors((prev) => ({ ...prev, [id]: validateField(id, value) }));
   };
 
-  // Handle blur events
   const handleBlur = (e) => {
     const { id } = e.target;
     setTouched((prev) => ({ ...prev, [id]: true }));
-
-    // Validate the field on blur
-    setErrors((prev) => ({
-      ...prev,
-      [id]: validateField(id, userData[id]),
-    }));
+    setErrors((prev) => ({ ...prev, [id]: validateField(id, userData[id]) }));
   };
 
-  // Handle form submission
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setUserData((prev) => ({
+        ...prev,
+        profileImage: previewUrl, // Set the preview image
+        profilePictureFile: file, // Store the actual file for submission
+      }));
+
+      return () => URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const handlePictureClick = () => {
+    fileInputRef.current.click(); // Trigger the hidden file input
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields before submission
-    const newErrors = {};
-    for (const field in userData) {
-      const error = validateField(field, userData[field]);
-      if (error) newErrors[field] = error;
-    }
-    setErrors(newErrors);
+    const formData = new FormData();
+    formData.append("firstName", userData.firstName);
+    formData.append("lastName", userData.lastName);
+    formData.append("phoneNumber", userData.phoneNumber);
 
-    // If there are errors, do not submit
-    if (Object.values(newErrors).some((error) => error)) {
-      setTouched((prev) =>
-        Object.keys(userData).reduce((acc, key) => ({ ...acc, [key]: true }), prev)
-      );
-      return;
+    if (userData.profilePictureFile) {
+      formData.append("profilePicture", userData.profilePictureFile);
     }
 
     try {
+      setIsLoading(true);
       const token = localStorage.getItem("access_token");
       if (!token) {
         throw new Error("No token found. Please log in.");
@@ -127,14 +140,9 @@ const ProfilePage = () => {
       const response = await fetch("http://127.0.0.1:8000/api/user/profile/", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          phoneNumber: userData.phoneNumber,
-        }),
+        body: formData, // Send form data as multipart/form-data
       });
 
       if (!response.ok) {
@@ -142,26 +150,42 @@ const ProfilePage = () => {
       }
 
       const data = await response.json();
+
       setSuccessMessage("Profile updated successfully!");
       console.log("Updated Profile:", data);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Error updating profile. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Render error or success message
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="container">
-      <div className="profile-picture-container">
+      <div className="profile-picture-container" onClick={handlePictureClick}>
         <div className="profile-picture">
-          <img src={profileImage} alt="Profile" />
+          <img src={userData.profileImage || ""} alt="Profile" />
+          <div className="edit-overlay">
+            <span>Edit Picture</span>
+          </div>
         </div>
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          style={{ display: "none" }} // Hide the file input
+          onChange={handleFileChange}
+        />
       </div>
 
       <form onSubmit={handleSubmit}>
+        {isLoading && <div className="loading">Loading...</div>}
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="firstName">First Name</label>
@@ -218,7 +242,7 @@ const ProfilePage = () => {
           {touched.phoneNumber && errors.phoneNumber && <div className="error-message">{errors.phoneNumber}</div>}
         </div>
 
-        <button type="submit">Save Changes</button>
+        <button type="submit" disabled={isLoading}>Save Changes</button>
         {successMessage && <div className="success-message">{successMessage}</div>}
       </form>
     </div>
