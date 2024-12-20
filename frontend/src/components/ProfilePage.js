@@ -92,36 +92,46 @@ const ProfilePage = () => {
 // ----------------------------------------------------
 
 const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('first_name', userData.firstName);
-    formData.append('last_name', userData.lastName);
-    formData.append('phone_number', userData.phoneNumber);
-    if (userData.profileImageFile) {
-        formData.append('profile_image', userData.profileImageFile);
-    }
+  // Validate the phone number
+  const phoneError = validatePhoneNumber(userData.phoneNumber);
+  setErrors((prev) => ({
+    ...prev,
+    phoneNumber: phoneError,
+  }));
 
-    const token = localStorage.getItem('access_token');
-
+  if (!phoneError) {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/user/update-profile/', {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-        });
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No token found. Please log in.');
+      }
 
-        if (response.ok) {
-            console.log('Profile updated successfully');
-        } else {
-            const errorData = await response.json();
-            console.error('Error:', errorData);
-        }
+      const response = await fetch('http://127.0.0.1:8000/api/user/basic-info/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update profile: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      alert('Profile updated successfully!');
+      console.log('Updated Profile:', data);
     } catch (error) {
-        console.error('Error updating profile:', error);
+      console.error('Error updating profile:', error);
+      alert('Error updating profile. Please try again.');
     }
+  }
 };
 
 //--------------------------------------------------------
@@ -146,6 +156,7 @@ const handleSubmit = async (e) => {
               value={userData.firstName}
               onChange={handleChange}
               required
+              placeholder="Enter your first name"
             />
           </div>
           <div className="form-group">
@@ -156,6 +167,7 @@ const handleSubmit = async (e) => {
               value={userData.lastName}
               onChange={handleChange}
               required
+              placeholder="Enter your last name"
             />
           </div>
         </div>

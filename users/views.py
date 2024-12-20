@@ -291,3 +291,37 @@ class CartViewSet(viewsets.ModelViewSet):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = sum([item.total_price() for item in CartItem.objects.filter(cart=cart)])
         return Response({"total_price": str(total)}, status=status.HTTP_200_OK)
+
+
+#----------------------------------------------------------------
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+
+@api_view(['GET', 'PUT'])
+def user_basic_info(request):
+    if request.method == 'GET':
+        user = request.user
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        })
+
+    elif request.method == 'PUT':
+        user = request.user
+        first_name = request.data.get('firstName', user.first_name)
+        last_name = request.data.get('lastName', user.last_name)
+
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+
+        return Response({
+            'message': 'User info updated successfully.',
+            'firstName': user.first_name,
+            'lastName': user.last_name,
+        }, status=status.HTTP_200_OK)
