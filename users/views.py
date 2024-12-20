@@ -326,3 +326,44 @@ class CartViewSet(viewsets.ModelViewSet):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = sum([item.total_price() for item in CartItem.objects.filter(cart=cart)])
         return Response({"total_price": str(total)}, status=status.HTTP_200_OK)
+
+
+
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from .models import UserProfile
+
+@api_view(['GET', 'PUT'])
+@parser_classes([MultiPartParser, FormParser])  # Allows file uploads
+def user_profile(request):
+    user = request.user
+
+    if request.method == 'GET':
+        try:
+            profile = user.profile
+            return Response({
+                'firstName': profile.first_name,
+                'lastName': profile.last_name,
+                'phoneNumber': profile.phone_number,
+                'profilePicture': profile.profile_picture.url if profile.profile_picture else None,
+                'username': user.username,
+                'email': user.email,
+            })
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'PUT':
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.first_name = request.data.get('firstName', profile.first_name)
+        profile.last_name = request.data.get('lastName', profile.last_name)
+        profile.phone_number = request.data.get('phoneNumber', profile.phone_number)
+
+        if 'profilePicture' in request.FILES:
+            profile.profile_picture = request.FILES['profilePicture']
+
+        profile.save()
+
+        return Response({'message': 'Profile updated successfully.'}, status=status.HTTP_200_OK)
+
