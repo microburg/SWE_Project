@@ -299,29 +299,39 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
+from .models import UserProfile
 
 @api_view(['GET', 'PUT'])
-def user_basic_info(request):
+def user_profile(request):
+    user = request.user
+
+    # Get Profile
     if request.method == 'GET':
-        user = request.user
-        return Response({
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        })
+        try:
+            profile = user.profile
+            return Response({
+                'firstName': profile.first_name,
+                'lastName': profile.last_name,
+                'phoneNumber': profile.phone_number,
+                'username': user.username,
+                'email': user.email,
+            })
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    # Update Profile
     elif request.method == 'PUT':
-        user = request.user
-        first_name = request.data.get('firstName', user.first_name)
-        last_name = request.data.get('lastName', user.last_name)
+        first_name = request.data.get('firstName')
+        last_name = request.data.get('lastName')
+        phone_number = request.data.get('phoneNumber')
 
-        user.first_name = first_name
-        user.last_name = last_name
-        user.save()
+        if not all([first_name, last_name, phone_number]):
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({
-            'message': 'User info updated successfully.',
-            'firstName': user.first_name,
-            'lastName': user.last_name,
-        }, status=status.HTTP_200_OK)
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.first_name = first_name
+        profile.last_name = last_name
+        profile.phone_number = phone_number
+        profile.save()
+
+        return Response({'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
