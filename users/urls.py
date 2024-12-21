@@ -1,11 +1,12 @@
 from django.urls import path, include
 from .views import LoginView, SignupView, google_auth, PizzaViewSet, UserBasicInfoView, PaymentView, ToppingListView, CartViewSet
-
+from .import views
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('signup/', SignupView.as_view(), name='signup'),
     path('api/auth/google/', google_auth, name='google_auth'),
+    path('submit/', views.submit_feedback, name='submit-feedback'),
 
     # Pizza-related endpoints
     path('menu/', PizzaViewSet.as_view({'get': 'list', 'post': 'create'}), name='pizza-list-create'),

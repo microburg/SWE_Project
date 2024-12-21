@@ -22,7 +22,7 @@ const Layout = ({ children }) => {
             <li><Link to="/" onClick={toggleMenu}>Home</Link></li>
             <li><Link to="/menu" onClick={toggleMenu}>Menu</Link></li>
             <li><Link to="#about" onClick={toggleMenu}>About</Link></li>
-            <li><Link to="#contact" onClick={toggleMenu}>Contact</Link></li>
+            <li><Link to="/contact" onClick={toggleMenu}>Contact</Link></li>
             <li><Link to="/customize" onClick={toggleMenu}>Customize Pizza</Link></li>
             <li><Link to="/payment" onClick={toggleMenu}>Payment</Link></li>
             <li><Link to="/profile" onClick={toggleMenu}>Profile</Link></li>

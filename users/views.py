@@ -15,7 +15,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import viewsets 
 
 from rest_framework.permissions import IsAuthenticated
-from .serializers import UserBasicInfoSerializer
+from .serializers import UserBasicInfoSerializer,FeedbackSerializer
 
  
 from .models import Pizza  
@@ -342,3 +342,12 @@ class CartViewSet(viewsets.ModelViewSet):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = sum([item.total_price() for item in CartItem.objects.filter(cart=cart)])
         return Response({"total_price": str(total)}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def submit_feedback(request):
+    if request.method == 'POST':
+        serializer = FeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

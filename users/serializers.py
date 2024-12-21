@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pizza, Cart, CartItem, Topping
+from .models import Pizza, Cart, CartItem, Topping,Feedback
 from django.contrib.auth.models import User
 
 class PizzaSerializer(serializers.ModelSerializer):
@@ -57,3 +57,8 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'user', 'created_at', 'items']
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['name', 'email', 'message', 'rating']
