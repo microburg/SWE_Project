@@ -1,70 +1,176 @@
-.menu-container {  
-    padding: 20px;  
-    max-width: 100%;   
-    margin: auto;  
-    background-color: #f8f9fa;  
-    border-radius: 8px;  
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
-    box-sizing: border-box;   
-}  
-
-.pizza-container {  
-    display: flex;  
-    flex-wrap: wrap;   
-    justify-content: flex-start;  
-    gap: 20px;  
-    padding-bottom: 20px;  
-    overflow-x: hidden; 
-}  
-
-.pizza-cube {  
-    background-color: #fff;  
-    border-radius: 8px;  
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
-    overflow: hidden;  
-    flex: 1 1 200px;   
-    display: flex;  
-    flex-direction: column;  
-    align-items: center;  
-    height: 350px;  
-    transition: transform 0.2s, box-shadow 0.2s;  
-}  
-
-.pizza-cube img {  
-    width: 100%; 
-    height: 50%; 
-    object-fit: cover; 
-}  
-
-.pizza-cube h2, .pizza-cube p {  
-    margin: 10px 0;  
+.menu-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background-color: #f9fafb;
+  }
+  
+  .menu-title {
     text-align: center;
-}  
-
-.price {  
-    font-weight: bold;  
-    color: #ff6f00; 
-}  
-
-.pizza-cube:hover {  
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+    color: #1f2937;
+  }
+  
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+  }
+  
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .message {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+  }
+  
+  .message.error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+  
+  .message.success {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  
+  .empty-message {
+    text-align: center;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .empty-message p {
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .pizza-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+  
+  .pizza-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .pizza-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pizza-image-container {
+    position: relative;
+    aspect-ratio: 16/9;
+    background-color: #f3f4f6;
+    overflow: hidden;
+  }
+  
+  .pizza-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .pizza-card:hover .pizza-image {
     transform: scale(1.05);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-}  
-
-@media (max-width: 768px) {  
-    .pizza-cube {  
-        flex: 1 1 150px;   
-        height: auto;   
-    }  
-}  
-
-@media (max-width: 480px) {  
-    .pizza-cube {  
-        flex: 1 1 100%;   
-        height: auto;   
-    }  
-
-    .menu-container {  
-        padding: 10px;   
-    }  
-}
+  }
+  
+  .pizza-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+  
+  .pizza-content {
+    padding: 1.5rem;
+  }
+  
+  .pizza-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+  }
+  
+  .pizza-description {
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    font-size: 1rem;
+  }
+  
+  .pizza-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .pizza-price {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .add-to-cart-button {
+    width: 100%;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.2s;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .add-to-cart-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+  }
+  
+  .add-to-cart-button:active {
+    transform: translateY(0);
+  }
+  
+  .add-to-cart-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }

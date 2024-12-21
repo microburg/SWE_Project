@@ -109,12 +109,14 @@ def google_auth(request):
         return Response({'success': False, 'error': 'Something went wrong'}, status=500)
 
 
+from decimal import Decimal, InvalidOperation
+from .models import VisaCard
+
 class PaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         data = request.data
-
         service_type = data.get('service_type')  # Dine In, Delivery, or Pick Up
         payment_method = data.get('payment_method')  # Cash or Visa
         amount = data.get('amount')
@@ -125,6 +127,12 @@ class PaymentView(APIView):
         # Basic validations
         if not service_type or not payment_method or not amount:
             return Response({"success": False, "message": "All fields are required"}, status=400)
+
+        # Convert amount to Decimal
+        try:
+            amount = Decimal(str(amount))  # Convert to Decimal from string
+        except InvalidOperation:
+            return Response({"success": False, "message": "Invalid amount format"}, status=400)
 
         # Create payment object
         payment = Payment(
@@ -138,14 +146,22 @@ class PaymentView(APIView):
             if not card_number or not expiry_date or not cvv:
                 return Response({"success": False, "message": "Card details are required for Visa payment"}, status=400)
 
-            # Example Visa validation logic (can be replaced with real validation)
-            if len(card_number) == 16 and len(cvv) == 3:
+            # Check if the card exists
+            try:
+                visa_card = VisaCard.objects.get(card_number=card_number, expiry_date=expiry_date, cvv=cvv)
+            except VisaCard.DoesNotExist:
+                return Response({"success": False, "message": "Invalid card details"}, status=400)
+
+            # Check if the balance is sufficient
+            if visa_card.balance >= amount:
+                visa_card.balance -= amount  # Deduct the amount from the card's balance
+                visa_card.save()  # Save the updated balance
                 payment.card_number = card_number
                 payment.expiry_date = expiry_date
                 payment.cvv = cvv
                 payment.payment_status = "Successful"
             else:
-                return Response({"success": False, "message": "Invalid card details"}, status=400)
+                return Response({"success": False, "message": "Insufficient balance on the card"}, status=400)
 
         elif payment_method == "Cash":
             payment.payment_status = "Pending"
@@ -156,30 +172,36 @@ class PaymentView(APIView):
         return Response({"success": True, "payment_status": payment.payment_status}, status=201)
 
 
-# Admin page create and update
-class PizzaViewSet(viewsets.ModelViewSet):
-    queryset = Pizza.objects.all()
-    serializer_class = PizzaSerializer
+from rest_framework import status  
+from rest_framework.response import Response  
+from rest_framework import viewsets  
+from .models import Pizza  
+from .serializers import PizzaSerializer  
+from rest_framework.permissions import IsAuthenticated  
+from django.urls import reverse  
 
-    def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()  # Create pizza 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PizzaViewSet(viewsets.ModelViewSet):  
+    queryset = Pizza.objects.all()  
+    serializer_class = PizzaSerializer  
+    permission_classes = [AllowAny]  # Ensure proper permissions  
+
+    def create(self, request):  
+        serializer = self.get_serializer(data=request.data)  
+        if serializer.is_valid():  
+            pizza = serializer.save()  # Create pizza   
+            # Generate URL for the created pizza  
+            pizza_url = reverse('admin:users_pizza_change', args=[pizza.id])  
+            return Response({'url': pizza_url, 'pizza': serializer.data}, status=status.HTTP_201_CREATED)  
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
     
-    def update(self, request, *args, **kwargs):
-        
-        instance = self.get_object() 
-        serializer = self.get_serializer(instance, data=request.data, partial=True) 
+    def update(self, request, *args, **kwargs):  
+        instance = self.get_object()  
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  
 
-        if serializer.is_valid():
-           
-            serializer.save() 
+        if serializer.is_valid():  
+            serializer.save()  
             return Response(serializer.data)  
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from rest_framework.permissions import IsAuthenticated
 
 # Profile class
 class UserBasicInfoView(APIView):
@@ -264,26 +286,55 @@ class CartViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def remove_from_cart(self, request):
-        # Get the user's cart
         cart, _ = Cart.objects.get_or_create(user=request.user)
         topping_id = request.data.get('topping_id')
+        pizza_id = request.data.get('pizza_id')
 
         try:
-            topping = Topping.objects.get(id=topping_id)
-            cart_item = CartItem.objects.get(cart=cart, topping=topping)
+            if topping_id:
+                # Remove topping from cart
+                topping = Topping.objects.get(id=topping_id)
+                cart_item = CartItem.objects.get(cart=cart, topping=topping)
+            elif pizza_id:
+                # Remove pizza from cart
+                pizza = Pizza.objects.get(id=pizza_id)
+                cart_item = CartItem.objects.get(cart=cart, pizza=pizza)
+            else:
+                return Response({"detail": "Invalid item type"}, status=status.HTTP_400_BAD_REQUEST)
+
             cart_item.delete()
             return Response({"detail": "Item removed from cart"}, status=status.HTTP_200_OK)
-        except Topping.DoesNotExist:
-            return Response({"detail": "Topping not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except (Topping.DoesNotExist, Pizza.DoesNotExist):
+            return Response({"detail": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
         except CartItem.DoesNotExist:
             return Response({"detail": "Item not in cart"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'])
     def get_cart_items(self, request):
-        # Get the user's cart and items
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = CartItem.objects.filter(cart=cart)
-        return Response(CartItemSerializer(items, many=True).data)
+        try:
+            # Log the incoming request
+            logging.info(f"Fetching cart items for user: {request.user.username}")
+            
+            # Get or create the cart for the user
+            cart, created = Cart.objects.get_or_create(user=request.user)
+            logging.info(f"Cart retrieved: {cart.id}, Created: {created}")
+            
+            # Fetch cart items
+            items = CartItem.objects.filter(cart=cart)
+            if not items:
+                logging.info("Cart is empty")
+                return Response({"message": "Your cart is empty"}, status=status.HTTP_200_OK)
+
+            # Serialize cart items
+            serializer = CartItemSerializer(items, many=True)
+            logging.info(f"Serialized cart items: {serializer.data}")
+
+            return Response(serializer.data)
+        except Exception as e:
+            logging.error(f"Error in get_cart_items: {str(e)}")
+            return Response({"error": "Failed to load cart items"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     @action(detail=False, methods=['get'])
     def get_total_price(self, request):

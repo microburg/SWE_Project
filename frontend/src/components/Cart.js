@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import './Cart.css';
 
@@ -6,13 +6,9 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    fetchCartItems();
-    fetchTotalPrice();
-  }, []);
-
-  const fetchCartItems = () => {
+  const fetchCartItems = useCallback(() => {
     const token = localStorage.getItem('access_token');
     setIsLoading(true);
     axios
@@ -20,37 +16,45 @@ const Cart = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setCartItems(response.data);
+        // Ensure response data is always an array
+        setCartItems(Array.isArray(response.data) ? response.data : []);
         setIsLoading(false);
+        setErrorMessage('');
       })
       .catch((error) => {
         console.error('Error fetching cart items:', error);
+        setErrorMessage('Failed to load cart items. Please try again.');
         setIsLoading(false);
       });
-  };
+  }, []);
 
-  const fetchTotalPrice = () => {
+  const fetchTotalPrice = useCallback(() => {
     const token = localStorage.getItem('access_token');
     axios
       .get('http://127.0.0.1:8000/api/carts/get_total_price/', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => setTotalPrice(response.data.total_price))
-      .catch((error) => console.error('Error fetching total price:', error));
-  };
+      .then((response) => {
+        setTotalPrice(parseFloat(response.data?.total_price || 0).toFixed(2));
+      })
+      .catch((error) => {
+        console.error('Error fetching total price:', error);
+        setErrorMessage('Failed to load total price. Please try again.');
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchCartItems();
+    fetchTotalPrice();
+  }, [fetchCartItems, fetchTotalPrice]);
 
   const handleAddToCart = (item, type) => {
     const token = localStorage.getItem('access_token');
     const endpoint = `http://127.0.0.1:8000/api/carts/add_to_cart/`;
     const payload = {
-      quantity: item.quantity || 1,
+      quantity: item?.quantity || 1, // Default to 1 if quantity is null
+      ...(type === 'pizza' ? { pizza_id: item?.id } : { topping_id: item?.id }),
     };
-
-    if (type === 'pizza') {
-      payload.pizza_id = item.id;
-    } else if (type === 'topping') {
-      payload.topping_id = item.id;
-    }
 
     axios
       .post(endpoint, payload, {
@@ -60,15 +64,18 @@ const Cart = () => {
         fetchCartItems();
         fetchTotalPrice();
       })
-      .catch((error) => console.error('Error adding item to cart:', error));
+      .catch((error) => {
+        console.error('Error adding item to cart:', error);
+        setErrorMessage('Failed to add item to cart. Please try again.');
+      });
   };
 
   const handleRemoveFromCart = (item) => {
     const token = localStorage.getItem('access_token');
     const endpoint = `http://127.0.0.1:8000/api/carts/remove_from_cart/`;
-    const payload = item.pizza
-      ? { pizza_id: item.pizza.id }
-      : { topping_id: item.topping.id };
+    const payload = item?.pizza
+      ? { pizza_id: item?.pizza?.id }
+      : { topping_id: item?.topping?.id };
 
     axios
       .post(endpoint, payload, {
@@ -78,10 +85,17 @@ const Cart = () => {
         fetchCartItems();
         fetchTotalPrice();
       })
-      .catch((error) => console.error('Error removing item from cart:', error));
+      .catch((error) => {
+        console.error('Error removing item from cart:', error);
+        setErrorMessage('Failed to remove item from cart. Please try again.');
+      });
   };
 
   const handleCheckout = () => {
+    if (cartItems?.length === 0) {
+      alert('Your cart is empty! Add some items before proceeding to checkout.');
+      return;
+    }
     alert('Proceeding to checkout!');
   };
 
@@ -96,7 +110,8 @@ const Cart = () => {
   return (
     <div className="cart-container">
       <h2>Your Cart</h2>
-      {cartItems.length === 0 ? (
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      {cartItems?.length === 0 ? (
         <div className="empty-cart">
           <p>Your cart is empty!</p>
           <p>Add some delicious items to get started.</p>
@@ -104,16 +119,18 @@ const Cart = () => {
       ) : (
         <>
           <div className="cart-items-list">
-            {cartItems.map((item) => (
-              <div key={item.id} className="cart-item">
+            {cartItems?.map((item) => (
+              <div key={item?.id || Math.random()} className="cart-item">
                 <div className="cart-item-details">
                   <span className="item-name">
-                    {item.pizza
-                      ? `${item.quantity} x ${item.pizza.name}`
-                      : `${item.quantity} x ${item.topping.name}`}
+                    {item?.pizza
+                      ? `${item?.quantity || 0} x ${item?.pizza?.name || 'Unknown Pizza'}`
+                      : item?.topping
+                      ? `${item?.quantity || 0} x ${item?.topping?.name || 'Unknown Topping'}`
+                      : `${item?.quantity || 0} x Item details not available`}
                   </span>
                   <span className="item-price">
-                    ${parseFloat(item.total_price || 0).toFixed(2)}
+                    ${parseFloat(item?.total_price || 0).toFixed(2)}
                   </span>
                 </div>
                 <button
@@ -126,7 +143,7 @@ const Cart = () => {
             ))}
           </div>
           <div className="cart-summary">
-            <h3>Total: ${parseFloat(totalPrice).toFixed(2)}</h3>
+            <h3>Total: ${parseFloat(totalPrice || 0).toFixed(2)}</h3>
             <button className="checkout-button" onClick={handleCheckout}>
               Proceed to Checkout
             </button>
