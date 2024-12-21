@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Payment.css';
 import delivery_img from "../images/delivery.png"
 import dinein_img from '../images/dine-in.png'
-import pickup_img from  '../images/pick-up.png'
+import pickup_img from '../images/pick-up.png'
 import visa_img from '../images/visa.png'
 import cash_img from '../images/cash.png'
+
 const Payment = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -14,9 +16,19 @@ const Payment = () => {
   const [serviceType, setServiceType] = useState('Dine In');
   const [cardDetails, setCardDetails] = useState({
     card_number: '',
-    expiry_date: '',
+    expiryMonth: '',
+    expiryYear: '',
     cvv: ''
   });
+
+  const [errors, setErrors] = useState({
+    card_number: '',
+    expiryMonth: '',
+    expiryYear: '',
+    cvv: ''
+  });
+
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     fetchCartItems();
@@ -35,11 +47,16 @@ const Payment = () => {
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching cart items:', error);
+        if (error.response && error.response.status === 401) {
+          alert('You need to log in first.');
+          navigate('/login');
+        } else {
+          console.error('Error fetching cart items:', error);
+        }
         setIsLoading(false);
       });
   };
-
+  
   const fetchTotalPrice = () => {
     const token = localStorage.getItem('access_token');
     axios
@@ -47,42 +64,149 @@ const Payment = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => setTotalPrice(response.data.total_price))
-      .catch((error) => console.error('Error fetching total price:', error));
+      .catch((error) => {
+        if (error.response && error.response.status === 401) {
+          alert('You need to log in first.');
+          navigate('/login');
+        } else {
+          console.error('Error fetching total price:', error);
+        }
+      });
+  };
+
+  const validateCardNumber = (value) => {
+    if (!/^\d+$/.test(value)) {
+      return 'Card number must contain only numbers';
+    }
+    if (value.length !== 16) {
+      return 'Card number must be 16 digits';
+    }
+    return '';
+  };
+
+  const validateExpiryMonth = (value) => {
+    if (!/^\d+$/.test(value)) {
+      return 'Month must contain only numbers';
+    }
+    const month = parseInt(value);
+    if (month < 1 || month > 12) {
+      return 'Month must be between 01 and 12';
+    }
+    return '';
+  };
+
+  const validateExpiryYear = (value) => {
+    if (!/^\d+$/.test(value)) {
+      return 'Year must contain only numbers';
+    }
+    const year = parseInt(value);
+    const currentYear = new Date().getFullYear() % 100;
+    if (year < currentYear) {
+      return 'Card has expired';
+    }
+    return '';
+  };
+
+  const validateCVV = (value) => {
+    if (!/^\d+$/.test(value)) {
+      return 'CVV must contain only numbers';
+    }
+    if (value.length !== 3) {
+      return 'CVV must be 3 digits';
+    }
+    return '';
+  };
+
+  const handleCardDetailsChange = (e) => {
+    const { name, value } = e.target;
+    let formattedValue = value;
+
+    if (name === 'card_number') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 16);
+    } else if (name === 'expiryMonth') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 2);
+    } else if (name === 'expiryYear') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 2);
+    } else if (name === 'cvv') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 3);
+    }
+
+    setCardDetails(prev => ({
+      ...prev,
+      [name]: formattedValue
+    }));
+
+    let error = '';
+    switch (name) {
+      case 'card_number':
+        error = validateCardNumber(formattedValue);
+        break;
+      case 'expiryMonth':
+        error = validateExpiryMonth(formattedValue);
+        break;
+      case 'expiryYear':
+        error = validateExpiryYear(formattedValue);
+        break;
+      case 'cvv':
+        error = validateCVV(formattedValue);
+        break;
+      default:
+        break;
+    }
+
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handlePayment = () => {
     const token = localStorage.getItem('access_token');
+    
+    // Validate all fields before submission
+    if (paymentMethod === 'Visa') {
+      const cardNumberError = validateCardNumber(cardDetails.card_number);
+      const monthError = validateExpiryMonth(cardDetails.expiryMonth);
+      const yearError = validateExpiryYear(cardDetails.expiryYear);
+      const cvvError = validateCVV(cardDetails.cvv);
+
+      setErrors({
+        card_number: cardNumberError,
+        expiryMonth: monthError,
+        expiryYear: yearError,
+        cvv: cvvError
+      });
+
+      if (cardNumberError || monthError || yearError || cvvError) {
+        alert('Please correct the errors before submitting');
+        return;
+      }
+    }
+
     const payload = {
       service_type: serviceType,
       payment_method: paymentMethod,
       amount: totalPrice,
     };
-
+  
     if (paymentMethod === 'Visa') {
       payload.card_number = cardDetails.card_number;
-      payload.expiry_date = cardDetails.expiry_date;
+      payload.expiry_date = `${cardDetails.expiryMonth}/${cardDetails.expiryYear}`;
       payload.cvv = cardDetails.cvv;
     }
-
+  
     axios
-      .post('http://127.0.0.1:8000/api/payments/process_payment/', payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        alert(`Payment ${response.data.payment_status}!`);
-      })
-      .catch((error) => {
-        console.error('Error processing payment:', error);
-        alert('Payment failed. Please try again.');
-      });
-  };
-
-  const handleCardDetailsChange = (e) => {
-    const { name, value } = e.target;
-    setCardDetails((prevDetails) => ({
-      ...prevDetails,
-      [name]: value,
-    }));
+    .post('http://127.0.0.1:8000/api/payments/process_payment/', payload, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((response) => {
+      alert(`Payment ${response.data.payment_status}!`);
+      navigate('/');
+    })
+    .catch((error) => {
+      console.error('Error processing payment:', error);
+      alert('Payment failed. Please try again.');
+    });
   };
 
   if (isLoading) {
@@ -188,21 +312,39 @@ const Payment = () => {
                     name="card_number"
                     value={cardDetails.card_number}
                     onChange={handleCardDetailsChange}
-                    maxLength="16"
-                    placeholder="1234 5678 9012 3456"
+                    placeholder="Card Number"
                   />
+                  {errors.card_number && (
+                    <span className="error-message">{errors.card_number}</span>
+                  )}
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Expiry Date</label>
-                    <input
-                      type="text"
-                      name="expiry_date"
-                      value={cardDetails.expiry_date}
-                      onChange={handleCardDetailsChange}
-                      maxLength="5"
-                      placeholder="MM/YY"
-                    />
+                    <div className="expiry-date-inputs">
+                      <input
+                        type="text"
+                        name="expiryMonth"
+                        value={cardDetails.expiryMonth}
+                        onChange={handleCardDetailsChange}
+                        placeholder="MM"
+                        className="expiry-input"
+                      />
+                      <span className="expiry-separator">/</span>
+                      <input
+                        type="text"
+                        name="expiryYear"
+                        value={cardDetails.expiryYear}
+                        onChange={handleCardDetailsChange}
+                        placeholder="YY"
+                        className="expiry-input"
+                      />
+                    </div>
+                    {(errors.expiryMonth || errors.expiryYear) && (
+                      <span className="error-message">
+                        {errors.expiryMonth || errors.expiryYear}
+                      </span>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>CVV</label>
@@ -211,9 +353,11 @@ const Payment = () => {
                       name="cvv"
                       value={cardDetails.cvv}
                       onChange={handleCardDetailsChange}
-                      maxLength="3"
-                      placeholder="123"
+                      placeholder="CVV"
                     />
+                    {errors.cvv && (
+                      <span className="error-message">{errors.cvv}</span>
+                    )}
                   </div>
                 </div>
               </div>

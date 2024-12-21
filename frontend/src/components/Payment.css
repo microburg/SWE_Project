@@ -11,7 +11,6 @@
   font-size: 2rem;
 }
 
-/* Loading State */
 .loading-spinner {
   text-align: center;
   padding: 40px;
@@ -32,7 +31,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Empty Cart */
 .empty-cart {
   text-align: center;
   padding: 40px;
@@ -101,7 +99,6 @@
   color: #ff6f00;
 }
 
-/* Payment Details Section */
 .payment-details-section {
   background: white;
   padding: 20px;
@@ -109,7 +106,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Service Type Selector */
 .service-options {
   display: flex;
   gap: 15px;
@@ -146,7 +142,6 @@
   font-weight: bold; 
 }
 
-/* Payment Method Selector */
 .payment-options {
   display: flex;
   gap: 15px;
@@ -171,7 +166,7 @@
 }
 
 .payment-option.selected {
-  border-color: #ff0000;
+  border-color: #000000;
   background-color: #ff6f00;
 }
 
@@ -196,7 +191,6 @@
   object-fit: contain;
 }
 
-/* Card Details Form */
 .card-details-form {
   margin-top: 20px;
   padding-top: 20px;
@@ -236,7 +230,6 @@ input:focus {
   border-color: #ff6f00;
 }
 
-/* Submit Button */
 .submit-payment-button {
   width: 100%;
   padding: 15px;
@@ -255,7 +248,34 @@ input:focus {
   background-color: #f57c00;
 }
 
-/* Responsive Design */
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.expiry-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expiry-input {
+  width: 60px;
+  text-align: center;
+}
+
+.expiry-separator {
+  color: #666;
+  font-weight: bold;
+}
+
+input:invalid {
+  border-color: #dc2626;
+}
+
 @media screen and (max-width: 768px) {
   .payment-layout {
     grid-template-columns: 1fr;
@@ -280,7 +300,6 @@ input:focus {
   }
 }
 
-/* Tablet Adjustments */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
   .payment-layout {
     grid-template-columns: 1fr;

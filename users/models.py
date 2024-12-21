@@ -71,3 +71,13 @@ class CartItem(models.Model):
         if self.topping:  
             total_price += self.quantity * self.topping.price  
         return total_price
+    
+class VisaCard(models.Model):
+    card_number = models.CharField(max_length=16, unique=True)
+    expiry_date = models.CharField(max_length=5)  # MM/YY
+    cvv = models.CharField(max_length=3)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def __str__(self):
+        return f"VisaCard {self.card_number} - Balance: ${self.balance}"
+
