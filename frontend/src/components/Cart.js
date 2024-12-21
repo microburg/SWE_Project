@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import './Cart.css';
 
@@ -8,12 +8,7 @@ const Cart = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  useEffect(() => {
-    fetchCartItems();
-    fetchTotalPrice();
-  }, []);
-
-  const fetchCartItems = () => {
+  const fetchCartItems = useCallback(() => {
     const token = localStorage.getItem('access_token');
     setIsLoading(true);
     axios
@@ -21,7 +16,8 @@ const Cart = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setCartItems(response.data || []); // Default to empty array if null/undefined
+        // Ensure response data is always an array
+        setCartItems(Array.isArray(response.data) ? response.data : []);
         setIsLoading(false);
         setErrorMessage('');
       })
@@ -30,22 +26,27 @@ const Cart = () => {
         setErrorMessage('Failed to load cart items. Please try again.');
         setIsLoading(false);
       });
-  };
+  }, []);
 
-  const fetchTotalPrice = () => {
+  const fetchTotalPrice = useCallback(() => {
     const token = localStorage.getItem('access_token');
     axios
       .get('http://127.0.0.1:8000/api/carts/get_total_price/', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setTotalPrice(parseFloat(response.data?.total_price || 0).toFixed(2)); // Handle null total_price
+        setTotalPrice(parseFloat(response.data?.total_price || 0).toFixed(2));
       })
       .catch((error) => {
         console.error('Error fetching total price:', error);
         setErrorMessage('Failed to load total price. Please try again.');
       });
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCartItems();
+    fetchTotalPrice();
+  }, [fetchCartItems, fetchTotalPrice]);
 
   const handleAddToCart = (item, type) => {
     const token = localStorage.getItem('access_token');

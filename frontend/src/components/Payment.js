@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Payment.css';
-import delivery_img from "../images/delivery.png"
-import dinein_img from '../images/dine-in.png'
-import pickup_img from '../images/pick-up.png'
-import visa_img from '../images/visa.png'
-import cash_img from '../images/cash.png'
+import delivery_img from "../images/delivery.png";
+import dinein_img from '../images/dine-in.png';
+import pickup_img from '../images/pick-up.png';
+import visa_img from '../images/visa.png';
+import cash_img from '../images/cash.png';
 
 const Payment = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -20,7 +20,6 @@ const Payment = () => {
     expiryYear: '',
     cvv: ''
   });
-
   const [errors, setErrors] = useState({
     card_number: '',
     expiryMonth: '',
@@ -43,7 +42,13 @@ const Payment = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
-        setCartItems(response.data);
+        // Ensure the response is an array
+        if (Array.isArray(response.data)) {
+          setCartItems(response.data);
+        } else {
+          console.error('Expected an array, but got:', response.data);
+          setCartItems([]); 
+        }
         setIsLoading(false);
       })
       .catch((error) => {
@@ -244,7 +249,7 @@ const Payment = () => {
           <div className="order-summary-section">
             <h3>Order Summary</h3>
             <div className="cart-items-list">
-              {cartItems.map((item) => (
+              {Array.isArray(cartItems) && cartItems.map((item) => (
                 <div key={item.id} className="cart-item">
                   <div className="cart-item-details">
                     <span className="item-name">
